@@ -1,0 +1,130 @@
+{% load finance_extras %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}FinTrack{% endblock %}</title>
+    <style>
+        :root { color-scheme: light; --ink: #17231e; --muted: #64736c; --green: #176b4d; --green-dark: #10543c; --line: #e2e9e5; --paper: #fff; --canvas: #f4f7f5; --red: #a83b38; --amber: #c27a10; --blue: #2f6fd6; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--canvas); color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.55; }
+        a { color: var(--green); text-decoration: none; }
+        a:hover { color: var(--green-dark); text-decoration: underline; }
+        h1, h2, h3 { letter-spacing: -.03em; line-height: 1.2; }
+        h2 { font-size: 1.15rem; margin: 0 0 12px; }
+        .site-header { background: var(--paper); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+        .nav-wrap { align-items: center; display: flex; flex-wrap: wrap; gap: 14px 22px; justify-content: space-between; margin: 0 auto; max-width: 1160px; padding: 14px 24px; }
+        .brand { color: var(--ink); font-size: 1.2rem; font-weight: 800; letter-spacing: -.04em; }
+        .nav-links { align-items: center; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+        .nav-links a { color: var(--ink); font-weight: 600; padding: 4px 0; border-bottom: 2px solid transparent; }
+        .nav-links a:hover { text-decoration: none; border-color: var(--line); }
+        .nav-links a.active { border-color: var(--green); color: var(--green); }
+        .nav-links form { margin: 0; }
+        .page { margin: 0 auto; max-width: 1160px; padding: 36px 24px 64px; }
+        .page-heading { margin: 0 0 6px; font-size: clamp(1.7rem, 4vw, 2.3rem); letter-spacing: -.05em; line-height: 1.15; }
+        .intro, .muted { color: var(--muted); }
+        .small { font-size: .88rem; }
+        .toolbar { align-items: center; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; margin: 20px 0; }
+        input, textarea, select { background: var(--paper); border: 1px solid #cbd6d0; border-radius: 9px; color: var(--ink); font: inherit; padding: 10px 12px; width: 100%; }
+        input:focus, textarea:focus, select:focus { border-color: var(--green); outline: 3px solid #176b4d22; }
+        button, .button { align-items: center; background: var(--green); border: 1px solid var(--green); border-radius: 9px; color: #fff; cursor: pointer; display: inline-flex; font: inherit; font-weight: 700; justify-content: center; padding: 9px 15px; text-decoration: none; transition: background .15s, transform .15s; white-space: nowrap; }
+        button:hover, .button:hover { background: var(--green-dark); color: #fff; text-decoration: none; transform: translateY(-1px); }
+        .button-secondary { background: #fff; border-color: var(--line); color: var(--ink); }
+        .button-secondary:hover { background: #f2f6f3; color: var(--ink); }
+        .button-danger { background: var(--red); border-color: var(--red); }
+        .button-danger:hover { background: #872e2b; }
+        .button-small { padding: 5px 10px; font-size: .88rem; }
+        .card, .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 8px 24px #17231e08; }
+        .card { padding: 20px; }
+        .panel { margin: 0 auto; max-width: 620px; padding: clamp(22px, 5vw, 38px); }
+        .panel-wide { max-width: 820px; }
+        .grid { display: grid; gap: 18px; }
+        .grid-4 { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+        .stat-label { color: var(--muted); font-size: .85rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+        .stat-value { font-size: 1.65rem; font-weight: 800; letter-spacing: -.04em; margin-top: 2px; }
+        .pos { color: var(--green); } .neg { color: var(--red); }
+        .form-panel form p { margin: 0 0 16px; }
+        .form-panel label { display: block; font-weight: 700; margin-bottom: 6px; }
+        .helptext { color: var(--muted); display: block; font-size: .88rem; margin-top: 5px; }
+        .errorlist { color: var(--red); margin: 5px 0; padding-left: 20px; }
+        .actions { align-items: center; display: flex; flex-wrap: wrap; gap: 9px; }
+        .actions form { margin: 0; }
+        .messages { display: grid; gap: 8px; margin: 18px auto 0; max-width: 1160px; padding: 0 24px; }
+        .message { background: #e8f4ed; border: 1px solid #c7e4d1; border-radius: 10px; color: #155538; padding: 12px 16px; }
+        .message.error { background: #fff0ef; border-color: #f2cfcc; color: #8c2824; }
+        .empty-state { background: var(--paper); border: 1px dashed #cbd6d0; border-radius: 16px; color: var(--muted); padding: 32px; text-align: center; }
+        .table-wrap { overflow-x: auto; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border-bottom: 1px solid var(--line); padding: 11px 10px; text-align: left; vertical-align: middle; }
+        th { color: var(--muted); font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; }
+        td.num, th.num { text-align: right; white-space: nowrap; }
+        tr:last-child td { border-bottom: 0; }
+        .badge { background: #eaf1ed; border-radius: 99px; color: var(--green-dark); display: inline-block; font-size: .78rem; font-weight: 700; padding: 2px 9px; }
+        .badge.expense { background: #fdeceb; color: var(--red); }
+        .badge.transfer { background: #e8effc; color: var(--blue); }
+        .progress { background: #e9efeb; border-radius: 99px; height: 10px; overflow: hidden; }
+        .progress > span { background: var(--green); border-radius: 99px; display: block; height: 100%; }
+        .progress.warn > span { background: var(--amber); } .progress.over > span { background: var(--red); }
+        .row { align-items: center; display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; }
+        .list-item { padding: 14px 0; border-bottom: 1px solid var(--line); }
+        .list-item:last-child { border-bottom: 0; padding-bottom: 0; }
+        .donut-wrap { align-items: center; display: flex; flex-wrap: wrap; gap: 22px; }
+        .donut { border-radius: 50%; flex: none; height: 150px; position: relative; width: 150px; }
+        .donut::after { background: var(--paper); border-radius: 50%; content: ""; inset: 28px; position: absolute; }
+        .legend { flex: 1 1 180px; list-style: none; margin: 0; padding: 0; }
+        .legend li { align-items: center; display: flex; gap: 8px; justify-content: space-between; padding: 3px 0; font-size: .92rem; }
+        .dot { border-radius: 50%; display: inline-block; height: 10px; margin-right: 7px; width: 10px; }
+        .bars { align-items: flex-end; display: flex; gap: 8px; height: 170px; }
+        .bar-col { align-items: center; display: flex; flex: 1; flex-direction: column; height: 100%; justify-content: flex-end; min-width: 0; }
+        .bar-pair { align-items: flex-end; display: flex; gap: 3px; height: 100%; width: 100%; justify-content: center; }
+        .bar { border-radius: 5px 5px 0 0; min-height: 2px; width: 40%; max-width: 26px; }
+        .bar.inc { background: var(--green); } .bar.exp { background: #e07b72; }
+        .bar-label { color: var(--muted); font-size: .72rem; margin-top: 6px; white-space: nowrap; }
+        .filters { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); align-items: end; }
+        .filters label { color: var(--muted); display: block; font-size: .78rem; font-weight: 700; margin-bottom: 3px; text-transform: uppercase; }
+        .pager { display: flex; gap: 10px; justify-content: center; margin-top: 20px; align-items: center; }
+        .month-nav { align-items: center; display: inline-flex; gap: 10px; font-weight: 700; }
+        .inline-form { display: inline-flex; gap: 6px; align-items: center; margin: 0; }
+        .inline-form input { padding: 5px 8px; width: 110px; }
+        @media (max-width: 650px) { .nav-wrap { align-items: flex-start; flex-direction: column; } .page { padding: 26px 16px 48px; } .grid-2 { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <nav class="nav-wrap" aria-label="Main navigation">
+            <a class="brand" href="{% url 'dashboard' %}">Fin<span style="color: var(--green)">Track</span></a>
+            <div class="nav-links">
+                {% if user.is_authenticated %}
+                    {% with p=request.path %}
+                    <a href="{% url 'dashboard' %}"{% if p == '/' %} class="active"{% endif %}>Dashboard</a>
+                    <a href="{% url 'transactions' %}"{% if '/transactions' in p %} class="active"{% endif %}>Transactions</a>
+                    <a href="{% url 'accounts' %}"{% if '/accounts' in p %} class="active"{% endif %}>Accounts</a>
+                    <a href="{% url 'budgets' %}"{% if '/budgets' in p %} class="active"{% endif %}>Budgets</a>
+                    <a href="{% url 'investments' %}"{% if '/investments' in p %} class="active"{% endif %}>Investments</a>
+                    <a href="{% url 'goals' %}"{% if '/goals' in p %} class="active"{% endif %}>Goals</a>
+                    <a href="{% url 'reports' %}"{% if '/reports' in p %} class="active"{% endif %}>Reports</a>
+                    {% endwith %}
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button class="button-secondary button-small" type="submit">Log out</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}">Log in</a>
+                    <a class="button" href="{% url 'register' %}">Create account</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+    {% if messages %}
+        <div class="messages" role="status" aria-live="polite">
+            {% for message in messages %}
+                <div class="message{% if message.tags == 'error' %} error{% endif %}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    <main class="page">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

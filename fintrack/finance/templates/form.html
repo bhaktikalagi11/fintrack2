@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} | FinTrack{% endblock %}
+
+{% block content %}
+    <section class="panel form-panel">
+        <h1 class="page-heading">{{ page_title }}</h1>
+        {% if intro %}<p class="intro">{{ intro }}</p>{% endif %}
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="actions">
+                <button type="submit">{{ submit_label }}</button>
+                <a class="button button-secondary" href="{% url back_url %}">Cancel</a>
+            </div>
+        </form>
+    </section>
+{% endblock %}

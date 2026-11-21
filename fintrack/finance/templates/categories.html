@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Categories | FinTrack{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div>
+            <h1 class="page-heading">Categories</h1>
+            <p class="intro">Organise income and spending your way.</p>
+        </div>
+        <a class="button" href="{% url 'add_category' %}">＋ Add category</a>
+    </div>
+    <div class="grid grid-2" style="margin-top: 20px">
+        <section class="card">
+            <h2>Expense</h2>
+            {% for c in expense %}
+                <div class="list-item row"><span>{{ c.name }}</span>
+                    <span class="actions small"><a href="{% url 'update_category' c.id %}">Edit</a><a href="{% url 'delete_category' c.id %}" class="neg">Delete</a></span></div>
+            {% empty %}<p class="muted">None yet.</p>{% endfor %}
+        </section>
+        <section class="card">
+            <h2>Income</h2>
+            {% for c in income %}
+                <div class="list-item row"><span>{{ c.name }}</span>
+                    <span class="actions small"><a href="{% url 'update_category' c.id %}">Edit</a><a href="{% url 'delete_category' c.id %}" class="neg">Delete</a></span></div>
+            {% empty %}<p class="muted">None yet.</p>{% endfor %}
+        </section>
+    </div>
+{% endblock %}

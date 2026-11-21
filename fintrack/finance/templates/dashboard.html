@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load finance_extras %}
+
+{% block title %}Dashboard | FinTrack{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div>
+            <h1 class="page-heading">Hi {{ user.username }} 👋</h1>
+            <p class="intro">Here's your financial picture for {{ month|date:"F Y" }}.</p>
+        </div>
+        <div class="month-nav">
+            <a class="button button-secondary button-small" href="?month={{ prev_month }}">←</a>
+            <span>{{ month|date:"M Y" }}</span>
+            {% if not is_current %}<a class="button button-secondary button-small" href="?month={{ next_month }}">→</a>{% endif %}
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <div class="actions">
+            <a class="button" href="{% url 'add_transaction' %}?kind=expense">＋ Expense</a>
+            <a class="button button-secondary" href="{% url 'add_transaction' %}?kind=income">＋ Income</a>
+            <a class="button button-secondary" href="{% url 'add_transaction' %}?kind=transfer">⇄ Transfer</a>
+        </div>
+    </div>
+
+    {% if not has_accounts %}
+        <div class="empty-state" style="margin-bottom: 18px">
+            <h2>Start by adding an account</h2>
+            <p>Add a bank account, wallet or card so you can record transactions.</p>
+            <a class="button" href="{% url 'add_account' %}">Add account</a>
+        </div>
+    {% endif %}
+
+    <section class="grid grid-4" aria-label="Summary">
+        <div class="card"><div class="stat-label">Net worth</div><div class="stat-value">{{ net_worth|money }}</div><div class="muted small">Accounts + investments</div></div>
+        <div class="card"><div class="stat-label">Income</div><div class="stat-value pos">{{ summary.income|money }}</div><div class="muted small">{{ month|date:"F" }}</div></div>
+        <div class="card"><div class="stat-label">Spent</div><div class="stat-value neg">{{ summary.expense|money }}</div><div class="muted small">{{ month|date:"F" }}</div></div>
+        <div class="card"><div class="stat-label">Saved</div><div class="stat-value {% if summary.saved < 0 %}neg{% else %}pos{% endif %}">{{ summary.saved|money }}</div><div class="muted small">Savings rate {{ summary.rate|pct }}</div></div>
+    </section>
+
+    <section class="grid grid-2" style="margin-top: 18px">
+        <div class="card">
+            <h2>Where your money went</h2>
+            {% if breakdown %}
+                <div class="donut-wrap">
+                    <div class="donut" style="background: conic-gradient({{ gradient }})" role="img" aria-label="Spending by category"></div>
+                    <ul class="legend">
+                        {% for item in breakdown %}
+                            <li><span><span class="dot" style="background: {{ item.color }}"></span>{{ item.name }}</span><strong>{{ item.total|money:0 }}</strong></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% else %}
+                <p class="muted">No expenses recorded this month yet.</p>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="row"><h2>Budgets</h2><a class="small" href="{% url 'budgets' %}">Manage</a></div>
+            {% for row in budgets %}
+                <div class="list-item">
+                    <div class="row small"><strong>{{ row.budget.category.name }}</strong><span class="muted">{{ row.spent|money:0 }} / {{ row.budget.amount|money:0 }}</span></div>
+                    <div class="progress {{ row.state }}" style="margin-top: 6px"><span style="width: {{ row.pct|clamp100 }}%"></span></div>
+                </div>
+            {% empty %}
+                <p class="muted">No budgets yet. <a href="{% url 'add_budget' %}">Set your first budget</a> to keep spending in check.</p>
+            {% endfor %}
+        </div>
+
+        <div class="card">
+            <div class="row"><h2>Investments</h2><a class="small" href="{% url 'investments' %}">Portfolio</a></div>
+            {% if portfolio.holdings %}
+                <div class="stat-value">{{ portfolio.value|money }}</div>
+                <p class="small {% if portfolio.gain >= 0 %}pos{% else %}neg{% endif %}">
+                    {{ portfolio.gain|money }} ({{ portfolio.gain_pct|pct }}) on {{ portfolio.invested|money }} invested
+                </p>
+                <ul class="legend">
+                    {% for a in portfolio.allocation %}
+                        <li><span><span class="dot" style="background: {{ a.color }}"></span>{{ a.name }}</span><span class="muted">{{ a.pct|floatformat:0 }}%</span></li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="muted">Nothing tracked yet. <a href="{% url 'add_investment' %}">Add an investment</a>.</p>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="row"><h2>Savings goals</h2><a class="small" href="{% url 'goals' %}">All goals</a></div>
+            {% for goal in goals %}
+                <div class="list-item">
+                    <div class="row small"><strong>{{ goal.name }}</strong><span class="muted">{{ goal.saved_amount|money:0 }} / {{ goal.target_amount|money:0 }}</span></div>
+                    <div class="progress" style="margin-top: 6px"><span style="width: {{ goal.progress|clamp100 }}%"></span></div>
+                </div>
+            {% empty %}
+                <p class="muted">No goals yet. <a href="{% url 'add_goal' %}">Create one</a>.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="card" style="margin-top: 18px">
+        <div class="row"><h2>Recent transactions</h2><a class="small" href="{% url 'transactions' %}">View all</a></div>
+        {% include 'partials/transaction_rows.html' with items=recent compact=True %}
+    </section>
+{% endblock %}

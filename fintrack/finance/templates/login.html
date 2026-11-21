@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Log in | FinTrack{% endblock %}
+
+{% block content %}
+    <section class="panel form-panel">
+        <h1 class="page-heading">Welcome back</h1>
+        <p class="intro">Log in to see where your money is going.</p>
+        <form method="post">
+            {% csrf_token %}
+            <p><label for="id_username">Username</label><input id="id_username" type="text" name="username" autocomplete="username" required></p>
+            <p><label for="id_password">Password</label><input id="id_password" type="password" name="password" autocomplete="current-password" required></p>
+            <button type="submit">Log in</button>
+        </form>
+        <p class="muted">New here? <a href="{% url 'register' %}">Create an account</a></p>
+    </section>
+{% endblock %}

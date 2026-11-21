@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load finance_extras %}
+
+{% block title %}Goals | FinTrack{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div>
+            <h1 class="page-heading">Savings goals</h1>
+            <p class="intro">Give your savings a purpose and watch them grow.</p>
+        </div>
+        <a class="button" href="{% url 'add_goal' %}">＋ New goal</a>
+    </div>
+    <div class="grid grid-2" style="margin-top: 20px">
+        {% for goal in goals %}
+            <div class="card">
+                <div class="row"><h2 style="margin: 0">{{ goal.name }}</h2>
+                    <span class="actions small"><a href="{% url 'update_goal' goal.id %}">Edit</a><a class="neg" href="{% url 'delete_goal' goal.id %}">Delete</a></span></div>
+                <div class="stat-value">{{ goal.saved_amount|money }} <span class="muted small" style="font-weight: 400">of {{ goal.target_amount|money }}</span></div>
+                <div class="progress" style="margin: 8px 0"><span style="width: {{ goal.progress|clamp100 }}%"></span></div>
+                <p class="muted small">{{ goal.progress }}% there · {{ goal.remaining|money }} to go{% if goal.target_date %} · by {{ goal.target_date|date:"d M Y" }}{% endif %}</p>
+                <form class="inline-form" method="post" action="{% url 'contribute_goal' goal.id %}">
+                    {% csrf_token %}
+                    <input type="number" step="0.01" min="0.01" name="amount" placeholder="Add amount" required aria-label="Amount to add to {{ goal.name }}">
+                    <button type="submit" class="button-small">Add</button>
+                </form>
+            </div>
+        {% empty %}
+            <div class="empty-state" style="grid-column: 1 / -1">No goals yet. <a href="{% url 'add_goal' %}">Create your first one</a>.</div>
+        {% endfor %}
+    </div>
+{% endblock %}

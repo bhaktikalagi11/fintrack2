@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Transactions | FinTrack{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div>
+            <h1 class="page-heading">Transactions</h1>
+            <p class="intro">Every rupee in, out and across your accounts.</p>
+        </div>
+        <div class="actions">
+            <a class="button button-secondary" href="{% url 'export_transactions' %}?{{ querystring }}">Export CSV</a>
+            <a class="button" href="{% url 'add_transaction' %}">＋ Add transaction</a>
+        </div>
+    </div>
+
+    <form class="card filters" method="get" style="margin: 20px 0" role="search">
+        <div><label for="f_q">Search</label><input id="f_q" type="search" name="q" value="{{ filters.q }}" placeholder="Description or category"></div>
+        <div><label for="f_kind">Type</label>
+            <select id="f_kind" name="kind"><option value="">All</option>
+                {% for value, label in kinds %}<option value="{{ value }}"{% if filters.kind == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select></div>
+        <div><label for="f_account">Account</label>
+            <select id="f_account" name="account"><option value="">All</option>
+                {% for a in accounts %}<option value="{{ a.id }}"{% if filters.account == a.id|stringformat:"s" %} selected{% endif %}>{{ a.name }}</option>{% endfor %}
+            </select></div>
+        <div><label for="f_category">Category</label>
+            <select id="f_category" name="category"><option value="">All</option>
+                {% for c in categories %}<option value="{{ c.id }}"{% if filters.category == c.id|stringformat:"s" %} selected{% endif %}>{{ c.name }} ({{ c.get_kind_display }})</option>{% endfor %}
+            </select></div>
+        <div><label for="f_start">From</label><input id="f_start" type="date" name="start" value="{{ filters.start }}"></div>
+        <div><label for="f_end">To</label><input id="f_end" type="date" name="end" value="{{ filters.end }}"></div>
+        <div class="actions"><button type="submit">Filter</button><a class="button button-secondary" href="{% url 'transactions' %}">Reset</a></div>
+    </form>
+
+    <section class="card">
+        {% include 'partials/transaction_rows.html' with items=page compact=False %}
+        {% if page.paginator.num_pages > 1 %}
+            <div class="pager">
+                {% if page.has_previous %}<a class="button button-secondary button-small" href="?{{ querystring }}&page={{ page.previous_page_number }}">← Newer</a>{% endif %}
+                <span class="muted small">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+                {% if page.has_next %}<a class="button button-secondary button-small" href="?{{ querystring }}&page={{ page.next_page_number }}">Older →</a>{% endif %}
+            </div>
+        {% endif %}
+    </section>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load finance_extras %}
+
+{% block title %}Investments | FinTrack{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div>
+            <h1 class="page-heading">Investments</h1>
+            <p class="intro">Your portfolio at a glance. Prices are entered manually, so update them whenever you like.</p>
+        </div>
+        <a class="button" href="{% url 'add_investment' %}">＋ Add investment</a>
+    </div>
+
+    <section class="grid grid-4" style="margin-top: 20px">
+        <div class="card"><div class="stat-label">Invested</div><div class="stat-value">{{ portfolio.invested|money }}</div></div>
+        <div class="card"><div class="stat-label">Current value</div><div class="stat-value">{{ portfolio.value|money }}</div></div>
+        <div class="card"><div class="stat-label">Total gain / loss</div><div class="stat-value {% if portfolio.gain >= 0 %}pos{% else %}neg{% endif %}">{{ portfolio.gain|money }}</div></div>
+        <div class="card"><div class="stat-label">Return</div><div class="stat-value {% if portfolio.gain >= 0 %}pos{% else %}neg{% endif %}">{{ portfolio.gain_pct|pct }}</div></div>
+    </section>
+
+    {% if portfolio.holdings %}
+    <section class="grid grid-2" style="margin-top: 18px; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr)">
+        <div class="card">
+            <h2>Holdings</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Name</th><th class="num">Units</th><th class="num">Avg buy</th><th class="num">Price</th><th class="num">Value</th><th class="num">P&amp;L</th><th></th></tr></thead>
+                    <tbody>
+                        {% for h in portfolio.holdings %}
+                            <tr>
+                                <td><strong>{{ h.name }}</strong>{% if h.symbol %} <span class="muted small">{{ h.symbol }}</span>{% endif %}<br><span class="badge">{{ h.get_asset_type_display }}</span></td>
+                                <td class="num">{{ h.quantity|floatformat:"-4" }}</td>
+                                <td class="num">{{ h.buy_price|money }}</td>
+                                <td class="num">
+                                    <form class="inline-form" method="post" action="{% url 'update_price' h.id %}">
+                                        {% csrf_token %}
+                                        <input type="number" step="any" min="0" name="current_price" value="{{ h.current_price|floatformat:"-4" }}" aria-label="Current price for {{ h.name }}">
+                                        <button class="button-secondary button-small" type="submit">Set</button>
+                                    </form>
+                                </td>
+                                <td class="num">{{ h.current_value|money }}</td>
+                                <td class="num {% if h.gain >= 0 %}pos{% else %}neg{% endif %}">{{ h.gain|money }}<br><span class="small">{{ h.gain_pct|pct }}</span></td>
+                                <td class="num"><a href="{% url 'update_investment' h.id %}">Edit</a><br><a class="neg" href="{% url 'delete_investment' h.id %}">Delete</a></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Allocation</h2>
+            <div class="donut-wrap">
+                <div class="donut" style="background: conic-gradient({{ portfolio.gradient }})" role="img" aria-label="Portfolio allocation"></div>
+                <ul class="legend">
+                    {% for a in portfolio.allocation %}
+                        <li><span><span class="dot" style="background: {{ a.color }}"></span>{{ a.name }}</span><strong>{{ a.pct|floatformat:0 }}%</strong></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </section>
+    {% else %}
+        <div class="empty-state" style="margin-top: 18px">
+            <h2>No investments yet</h2>
+            <p>Add stocks, mutual funds, gold, FDs or anything else you hold to track your net worth.</p>
+            <a class="button" href="{% url 'add_investment' %}">Add your first investment</a>
+        </div>
+    {% endif %}
+{% endblock %}

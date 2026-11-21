@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load finance_extras %}
+
+{% block title %}Reports | FinTrack{% endblock %}
+
+{% block content %}
+    <h1 class="page-heading">Reports</h1>
+    <p class="intro">Trends over the last 12 months and your spending breakdown for {{ year }}.</p>
+
+    <section class="card" style="margin-top: 20px">
+        <div class="row">
+            <h2>Income vs expenses</h2>
+            <span class="small muted"><span class="dot" style="background: var(--green)"></span>Income <span class="dot" style="background: #e07b72; margin-left: 10px"></span>Expenses</span>
+        </div>
+        <div class="bars" role="img" aria-label="Monthly income and expense chart">
+            {% for m in trend %}
+                <div class="bar-col" title="{{ m.label }}: income {{ m.income|money }}, expenses {{ m.expense|money }}">
+                    <div class="bar-pair">
+                        <div class="bar inc" style="height: {{ m.income_h }}%"></div>
+                        <div class="bar exp" style="height: {{ m.expense_h }}%"></div>
+                    </div>
+                    <span class="bar-label">{{ m.label }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="grid grid-4" style="margin-top: 18px">
+        <div class="card"><div class="stat-label">{{ year }} income</div><div class="stat-value pos">{{ year_totals.income|money }}</div></div>
+        <div class="card"><div class="stat-label">{{ year }} expenses</div><div class="stat-value neg">{{ year_totals.expense|money }}</div></div>
+        <div class="card"><div class="stat-label">{{ year }} saved</div><div class="stat-value">{{ year_totals.saved|money }}</div></div>
+        <div class="card"><div class="stat-label">Savings rate</div><div class="stat-value">{{ year_totals.rate|pct }}</div></div>
+    </section>
+
+    <section class="card" style="margin-top: 18px">
+        <h2>{{ year }} spending by category</h2>
+        {% if breakdown %}
+            <div class="donut-wrap">
+                <div class="donut" style="background: conic-gradient({{ gradient }})" role="img" aria-label="Spending by category"></div>
+                <ul class="legend">
+                    {% for item in breakdown %}
+                        <li><span><span class="dot" style="background: {{ item.color }}"></span>{{ item.name }}</span><span><strong>{{ item.total|money }}</strong> <span class="muted small">{{ item.pct|floatformat:0 }}%</span></span></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% else %}
+            <p class="muted">No expenses recorded for {{ year }}.</p>
+        {% endif %}
+    </section>
+{% endblock %}

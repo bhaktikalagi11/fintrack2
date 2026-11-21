@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load finance_extras %}
+
+{% block title %}Budgets | FinTrack{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div>
+            <h1 class="page-heading">Budgets</h1>
+            <p class="intro">{{ total_spent|money }} spent of {{ total_budget|money }} budgeted in {{ month|date:"F Y" }}.</p>
+        </div>
+        <div class="actions">
+            <span class="month-nav">
+                <a class="button button-secondary button-small" href="?month={{ prev_month }}">←</a>
+                <span>{{ month|date:"M Y" }}</span>
+                <a class="button button-secondary button-small" href="?month={{ next_month }}">→</a>
+            </span>
+            <a class="button" href="{% url 'add_budget' %}">＋ Set budget</a>
+        </div>
+    </div>
+    <section class="card" style="margin-top: 20px">
+        {% for row in rows %}
+            <div class="list-item">
+                <div class="row">
+                    <strong>{{ row.budget.category.name }}</strong>
+                    <span class="actions small">
+                        <a href="{% url 'update_budget' row.budget.id %}">Edit</a>
+                        <a href="{% url 'delete_budget' row.budget.id %}" class="neg">Delete</a>
+                    </span>
+                </div>
+                <div class="progress {{ row.state }}" style="margin: 8px 0 4px"><span style="width: {{ row.pct|clamp100 }}%"></span></div>
+                <div class="row small muted">
+                    <span>{{ row.spent|money }} of {{ row.budget.amount|money }} ({{ row.pct }}%)</span>
+                    <span class="{% if row.remaining < 0 %}neg{% endif %}">
+                        {% if row.remaining >= 0 %}{{ row.remaining|money }} left{% else %}{{ row.remaining|money }} over budget{% endif %}
+                    </span>
+                </div>
+            </div>
+        {% empty %}
+            <p class="muted">No budgets set. <a href="{% url 'add_budget' %}">Create one</a>.</p>
+        {% endfor %}
+    </section>
+{% endblock %}

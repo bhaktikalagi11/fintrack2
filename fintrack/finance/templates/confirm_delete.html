@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete {{ label|lower }} | FinTrack{% endblock %}
+
+{% block content %}
+    <section class="panel">
+        <h1 class="page-heading">Delete this {{ label|lower }}?</h1>
+        <p class="intro"><strong>{{ object }}</strong></p>
+        {% if warning %}<p class="neg">{{ warning }}</p>{% endif %}
+        <p class="muted">This can't be undone.</p>
+        <form method="post" class="actions">
+            {% csrf_token %}
+            <button class="button-danger" type="submit">Yes, delete</button>
+            <a class="button button-secondary" href="{% url back_url %}">Cancel</a>
+        </form>
+    </section>
+{% endblock %}

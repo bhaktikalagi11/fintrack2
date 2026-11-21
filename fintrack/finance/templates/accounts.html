@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load finance_extras %}
+
+{% block title %}Accounts | FinTrack{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div>
+            <h1 class="page-heading">Accounts</h1>
+            <p class="intro">Total across accounts: <strong class="{% if total < 0 %}neg{% else %}pos{% endif %}">{{ total|money }}</strong></p>
+        </div>
+        <div class="actions">
+            <a class="button button-secondary" href="{% url 'categories' %}">Categories</a>
+            <a class="button" href="{% url 'add_account' %}">＋ Add account</a>
+        </div>
+    </div>
+    <div class="grid grid-4" style="margin-top: 20px">
+        {% for row in rows %}
+            <div class="card">
+                <span class="badge">{{ row.account.get_account_type_display }}</span>
+                <h2 style="margin-top: 10px">{{ row.account.name }}</h2>
+                <div class="stat-value {% if row.balance < 0 %}neg{% endif %}">{{ row.balance|money }}</div>
+                <p class="muted small">Opening balance {{ row.account.opening_balance|money }}</p>
+                <div class="actions">
+                    <a href="{% url 'transactions' %}?account={{ row.account.id }}">Activity</a>
+                    <a href="{% url 'update_account' row.account.id %}">Edit</a>
+                    <a href="{% url 'delete_account' row.account.id %}" class="neg">Delete</a>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state" style="grid-column: 1 / -1">No accounts yet. <a href="{% url 'add_account' %}">Add your first one</a>.</div>
+        {% endfor %}
+    </div>
+{% endblock %}
